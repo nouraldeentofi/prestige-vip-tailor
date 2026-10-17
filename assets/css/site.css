@@ -44,8 +44,10 @@
   --f-mark:"Aref Ruqaa","Ruqaa Fallback",serif;
   --ease:cubic-bezier(.22,.8,.24,1); --spring:cubic-bezier(.34,1.32,.52,1);
   --hdr-h:64px; --gut:18px; --dock-h:66px;
+  --dir:-1; /* -1 = RTL (Arabic), 1 = LTR (English): mirrors directional motion */
   color-scheme:light;
 }
+[dir="ltr"]{--dir:1}
 [data-theme="dark"]{
   --bg:#0B1322; --bg-2:#101B2E; --surface:#131F35;
   --ink:#E6ECF3; --ink-2:#AAB6C7; --ink-3:#93A2B6;
@@ -157,6 +159,7 @@ button{background:none;border:0;padding:0;cursor:pointer}
 .progress{position:absolute;inset-inline:0;bottom:0;height:2px;overflow:hidden;opacity:0;transition:opacity .3s}
 .hdr.is-scrolled .progress{opacity:1}
 .progress i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--vip-2));transform-origin:right;transform:scaleX(var(--p,0))}
+[dir="ltr"] .progress i,[dir="ltr"] .wz-prog i{transform-origin:left}
 
 /* ---------- Buttons ---------- */
 .btn{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:48px;padding:0 22px;border-radius:var(--r-pill);font-weight:600;font-size:var(--t-sm);line-height:1.2;border:1.5px solid transparent;cursor:pointer;white-space:nowrap;transition:transform .2s var(--ease),box-shadow .3s var(--ease),background-color .25s,border-color .25s,color .25s;user-select:none;-webkit-user-select:none}
@@ -196,7 +199,7 @@ button{background:none;border:0;padding:0;cursor:pointer}
   .icon-btn:hover{background:var(--brand-soft);border-color:var(--line-2)}
   .hdr-nav a:hover{background:var(--brand-soft);color:var(--ink)}
   .link-soft:hover{background:var(--brand-soft)}
-  .link-soft:hover .ic{transform:translateX(-3px)}
+  .link-soft:hover .ic{transform:translateX(calc(3px * var(--dir)))}
   .brand:hover .mono{transform:rotate(-4deg)}
 }
 .mono{transition:transform .5s var(--spring)}
@@ -303,6 +306,162 @@ button{background:none;border:0;padding:0;cursor:pointer}
   .sw{--sw-h:clamp(160px,42vw,200px)}
 }
 
+/* ---------- Opening: «على المقاس» — cut to measure ----------
+   The finished hero is plain CSS: the builder's own thobe on its hanger, in front of the swatch book,
+   with a swing tag that leads into «جهّز ثوبك». html.cut-play (added once per session by the inline
+   head script, never with reduced motion) plays the tailoring over that finished state:
+   fabric → chalk draft → tape + measurements → running stitch → the cloth fills the pattern and the
+   thobe settles on the hanger → woven VIP label → swing tag. transform / opacity / stroke-dashoffset only. */
+.hero-stage{--bh:calc(clamp(250px,70vw,330px) - 22px);--bt:6px}
+@media (max-width:899px) and (max-height:720px){.hero-stage{--bh:calc(clamp(210px,56vw,260px) - 16px);--bt:4px}}
+@media (min-width:900px){.hero-stage{--bh:500px;--bt:22px}}
+.cut-board{position:absolute;z-index:2;top:var(--bt);height:var(--bh);width:calc(var(--bh) * 300 / 430);inset-inline:0;margin-inline:auto;container-type:size;
+  --chalk:#3D6EAD;--thread:#1F3A5F}
+[data-theme="dark"] .cut-board{--chalk:#E2EAF4;--thread:#DCE5F0}
+/* the thobe: same drawing as the builder; white by day, navy by night */
+.cut-fill{position:absolute;top:-6%;bottom:-10%;left:-14%;right:-14%;overflow:hidden;pointer-events:none}
+.cut-fill-in{position:absolute;inset:0}
+.cut-swing{position:absolute;top:calc(600% / 116);left:calc(1400% / 128);width:calc(10000% / 128);height:calc(10000% / 116);transform-origin:50% 1%;animation:cutSway 7s ease-in-out infinite alternate}
+@keyframes cutSway{from{transform:rotate(-.5deg)}to{transform:rotate(.5deg)}}
+.cut-thobe{--fab:#FAFBFC;--seam:#1F3A5F;position:absolute;inset:0}
+[data-theme="dark"] .cut-thobe{--fab:#22344F;--seam:#DCE5F0;filter:drop-shadow(0 18px 22px rgba(0,0,0,.6))}
+[data-theme="dark"] .cut-thobe .fold{stroke:rgba(255,255,255,.06)}
+[data-theme="dark"] .cut-thobe .link{fill:#8FA3BC}
+[data-theme="dark"] .cut-swing .turn-sheen i{background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent)}
+.cut-swing .turn-sheen i{animation-delay:2.5s}
+/* woven VIP flag label, sewn into the side seam (wearer's left) */
+.cut-vip{position:absolute;left:65.5%;top:71.2%;display:block;font:700 max(8.5px,3.3cqw)/1 var(--f-head);letter-spacing:.16em;padding:.42em .5em .36em 1.2em;border-radius:1px 3px 3px 1px;color:#EAF0F7;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.08) 0 1px,transparent 1px 2px),linear-gradient(180deg,#2A4C7A,#172C49);box-shadow:inset 0 0 0 1px rgba(255,255,255,.12),0 2px 4px -1px rgba(11,24,48,.45)}
+[data-theme="dark"] .cut-vip{color:#1F3A5F;background:repeating-linear-gradient(90deg,rgba(31,58,95,.07) 0 1px,transparent 1px 2px),linear-gradient(180deg,#FBF7EE,#E9E0CC);box-shadow:inset 0 0 0 1px rgba(31,58,95,.12),0 2px 5px -1px rgba(0,0,0,.6)}
+.cut-vip-st{position:absolute;left:68.5%;top:70.6%;width:1.6px;height:5.4%;background:repeating-linear-gradient(180deg,var(--thread) 0 2px,transparent 2px 4px);transform-origin:50% 0;opacity:.8}
+/* the swing tag on the hanger → «جهّز ثوبك» */
+.cut-tagw{position:absolute;z-index:5;top:calc(6000% / 430);inset-inline-end:calc(11400% / 300);width:0;height:0;--L:clamp(36px,19cqw,56px);transform-origin:0 0;animation:cutTagSway 6s ease-in-out infinite alternate}
+@keyframes cutTagSway{from{transform:rotate(-1.5deg)}to{transform:rotate(1.5deg)}}
+.cut-str{position:absolute;top:-2px;left:-.9px;width:2px;height:calc(var(--L) + 2px);border-radius:1px;background:linear-gradient(90deg,#9A7432,#D4AE62 50%,#9A7432);box-shadow:0 1px 1px rgba(11,24,48,.25);transform-origin:50% 2px;transform:rotate(34deg)}
+.cut-str::before{content:"";position:absolute;top:-1px;left:-2px;width:6px;height:6px;border-radius:50%;background:#B08A45}
+[dir="ltr"] .cut-str{transform:rotate(-34deg)}
+.cut-tag{position:absolute;top:calc(var(--L) * .83 - 10px);inset-inline-start:calc(var(--L) * .56 - 10px);display:inline-flex;align-items:center;gap:6px;min-height:44px;padding-block:0;padding-inline:21px 12px;border-radius:9px;white-space:nowrap;
+  background:linear-gradient(180deg,#FFFDF8,#F3EEE2);color:#1F3A5F;font-weight:600;font-size:13px;line-height:1.2;
+  box-shadow:0 12px 22px -12px rgba(11,24,48,.55),0 1px 2px rgba(11,24,48,.18);outline:1.5px dashed rgba(31,58,95,.32);outline-offset:-5px;transition:transform .25s var(--ease)}
+.cut-tag::before{content:"";position:absolute;inset-inline-start:6.5px;top:6.5px;width:7px;height:7px;border-radius:50%;background:var(--bg);box-shadow:inset 0 1px 2px rgba(0,0,0,.35)}
+.cut-tag .ic{width:17px;height:17px}
+.cut-tag .cut-arr{width:15px;height:15px;transition:transform .3s var(--ease)}
+.cut-tag:focus-visible{outline:2.5px solid var(--brand);outline-offset:3px}
+.cut-tag:active{transform:scale(.96)}
+@media (hover:hover){.cut-tag:hover{transform:translateY(-2px)}.cut-tag:hover .cut-arr{transform:translateX(calc(3px * var(--dir)))}}
+@media (max-width:430px){.cut-tag{font-size:12.5px;padding-inline:19px 11px;gap:5px}.cut-tag .cut-arr{display:none}}
+@media (max-width:389px){html[lang="en"] .cut-tag{white-space:normal;max-width:8.4em;line-height:1.15;padding-block:6px}}
+@media (min-width:900px){.cut-tag{font-size:var(--t-sm);padding-inline:23px 14px;min-height:48px}}
+/* the chips keep fixed widths (no shift when the font lands); English words are longer */
+html[lang="en"] .hchip-b{width:7.9em}
+/* phones: the rating chip moves off the shoulders to the sleeve side, clear of the collar */
+@media (max-width:899px){.hero-stage .hchip-a{top:43%;inset-inline-start:calc(var(--gut) - 6px)}}
+/* replay: only where the opening can play (JS on, motion allowed) */
+.cut-replay{display:none;position:absolute;z-index:6;inset-inline-start:calc(var(--gut) - 6px);bottom:56px;opacity:.86;background:var(--glass-soft);box-shadow:var(--shadow-1)}
+.cut-replay .ic{width:20px;height:20px}
+@media (prefers-reduced-motion:no-preference){.js .cut-replay{display:inline-grid}}
+@media (min-width:900px){.cut-replay{inset-inline-start:auto;inset-inline-end:4%;bottom:6%}}
+/* opening-only layers */
+.cut-cloth,.cut-draft,.cut-meas{display:none}
+.cut-cloth{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden;
+  background:radial-gradient(90% 55% at 72% 10%,rgba(255,255,255,.95),transparent 70%),repeating-linear-gradient(45deg,rgba(19,32,58,.05) 0 1px,transparent 1px 3px),repeating-linear-gradient(-45deg,rgba(255,255,255,.75) 0 1px,transparent 1px 4px),linear-gradient(180deg,#F9FAFC,#EDF1F6);
+  -webkit-mask:linear-gradient(#000 82%,transparent);mask:linear-gradient(#000 82%,transparent)}
+[data-theme="dark"] .cut-cloth{background:radial-gradient(90% 55% at 72% 10%,rgba(120,152,194,.24),transparent 70%),repeating-linear-gradient(45deg,rgba(255,255,255,.045) 0 1px,transparent 1px 3px),repeating-linear-gradient(-45deg,rgba(0,0,0,.28) 0 1px,transparent 1px 4px),linear-gradient(180deg,#1E2E49,#142035)}
+/* light glancing across the cloth: a fixed band that only fades (a moving band would count as layout shift) */
+.cut-cloth::after{content:"";position:absolute;inset:0;opacity:0;background:linear-gradient(105deg,transparent 28%,rgba(255,255,255,.7) 47%,transparent 66%)}
+[data-theme="dark"] .cut-cloth::after{background:linear-gradient(105deg,transparent 28%,rgba(190,212,240,.12) 47%,transparent 66%)}
+.cut-draft{position:absolute;inset:0;width:100%;height:100%;overflow:visible;fill:none;stroke:var(--chalk);stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.c-con path{stroke-width:1.1;opacity:.55;stroke-dasharray:1 1}
+.c-out{stroke-width:2.6;stroke-dasharray:1 1}
+.c-det path{stroke-width:1.6;opacity:.85;stroke-dasharray:1 1}
+.c-mark{stroke-width:1.4;opacity:.7}
+.c-dims path{stroke-width:1.3;stroke-dasharray:1 1}
+.c-st{stroke:var(--thread);stroke-width:1.6;stroke-dasharray:3.4 2.8;stroke-linecap:butt}
+.c-st-rev{fill:none;stroke:#fff;stroke-width:9;stroke-dasharray:1 1}
+.cut-meas{position:absolute;inset:0;pointer-events:none}
+.cut-tape{position:absolute;top:calc(6200% / 430);height:calc(35200% / 430);inset-inline-end:calc(26600% / 300);width:max(11px,4.6cqw);overflow:hidden;border-radius:2px;box-shadow:0 6px 12px -6px rgba(11,24,48,.45)}
+.cut-tape-in{position:absolute;inset:0;background:repeating-linear-gradient(180deg,rgba(31,58,95,.75) 0 1px,transparent 1px 5px) 0 0/42% 100% no-repeat,repeating-linear-gradient(180deg,#1F3A5F 0 1.5px,transparent 1.5px 25px) 0 0/78% 100% no-repeat,#F2EDDF;box-shadow:inset 0 0 0 1px rgba(19,32,58,.16)}
+[dir="ltr"] .cut-tape-in{background-position:100% 0,100% 0,0 0}
+.cut-tape-tip{position:absolute;inset-inline:0;bottom:0;height:5px;background:linear-gradient(#A3AEBD,#5B6A80)}
+.cut-chalk{position:absolute;top:calc(3600% / 430);left:50%;width:0;height:100%;filter:drop-shadow(0 2px 2px rgba(11,24,48,.3))}
+.cut-chalk::before{content:"";position:absolute;left:-7px;top:-11px;width:14px;height:12px;clip-path:polygon(50% 100%,0 0,100% 0);background:linear-gradient(160deg,#7DA3D3,#3D6EAD)}
+[data-theme="dark"] .cut-chalk::before{background:linear-gradient(160deg,#FFFFFF,#C9D5E3)}
+.cut-m{position:absolute;display:inline-flex;align-items:baseline;gap:4px;padding:3px 7px;border-radius:7px;white-space:nowrap;font-size:11px;font-weight:500;line-height:1.3;color:var(--chalk);
+  background:color-mix(in srgb,var(--bg) 72%,transparent);border:1px dashed color-mix(in srgb,var(--chalk) 55%,transparent)}
+.cut-m small{font-size:9.5px;opacity:.8}
+.m-sh{top:-1%;inset-inline:0;margin-inline:auto;width:max-content}
+.m-sl{top:38%;inset-inline-start:calc(87% + 2px)}
+.m-len{top:52%;inset-inline-end:calc(26600% / 300 + max(11px,4.6cqw) + 5px)}
+.odo{display:inline-flex;font-weight:600;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink)}
+.odo i{display:block;height:1.15em;overflow:hidden;font-style:normal}
+.odo b{display:block;font-weight:inherit;line-height:1.15em;transform:translateY(calc(var(--d) * -1.15em))}
+.odo b span{display:block}
+@media (min-width:900px){.cut-m{font-size:13px;padding:4px 9px}.odo{font-size:15px}.cut-m small{font-size:11px}.c-out{stroke-width:2.2}}
+
+/* ---- the sequence ---- */
+@keyframes cutDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes cutOut{to{opacity:0}}
+@keyframes cutIn{from{opacity:0}}
+@keyframes cutRevA{from{transform:translateY(-100%)}to{transform:none}}
+@keyframes cutRevB{from{transform:translateY(100%)}to{transform:none}}
+.cut-play .cut-cloth,.cut-play .cut-draft,.cut-play .cut-meas{display:block}
+/* 0 s — fine fabric; the sheen runs once; at 3 s the cloth around the pattern falls away */
+.cut-play .cut-cloth{animation:cutCloth .9s cubic-bezier(.5,0,.3,1) 3s both}
+.cut-play .cut-cloth::after{animation:cutGlint 2.6s ease-in-out .1s both}
+@keyframes cutCloth{to{opacity:0;transform:scale(1.04)}}
+@keyframes cutGlint{0%,100%{opacity:0}45%{opacity:1}}
+/* .15 s — chalk: construction lines, the chalk riding the centre front, then the pattern */
+.cut-play .c-con path{animation:cutDraw .6s cubic-bezier(.5,0,.3,1) both;animation-delay:calc(.15s + var(--k) * .08s)}
+.cut-play .cut-chalk{animation:cutChalk .6s cubic-bezier(.5,0,.3,1) .15s both,cutOut .22s ease .76s both}
+@keyframes cutChalk{to{transform:translateY(90.2%)}}
+.cut-play .c-out{animation:cutDraw 1.2s cubic-bezier(.45,.05,.35,1) .45s both}
+.cut-play .c-det path{animation:cutDraw .45s ease-out both;animation-delay:calc(1.15s + var(--k) * .12s)}
+.cut-play .c-mark{animation:cutIn .4s ease 1.5s both}
+/* 1.2 s — tape unrolls down the length; measurements roll into place */
+.cut-play .c-dim-len{animation:cutDraw .3s ease-out 1.2s both}
+.cut-play .c-dim-sh{animation:cutDraw .4s ease-out 1.35s both}
+.cut-play .c-dim-sl{animation:cutDraw .45s ease-out 1.6s both}
+.cut-play .cut-tape{animation:cutRevA 1s cubic-bezier(.4,0,.2,1) 1.3s both}
+.cut-play .cut-tape-in{animation:cutRevB 1s cubic-bezier(.4,0,.2,1) 1.3s both}
+.cut-play .cut-m{animation:cutLbl .4s var(--spring) both}
+@keyframes cutLbl{from{opacity:0;transform:translateY(5px) scale(.9)}}
+.cut-play .m-sh{animation-delay:1.5s}.cut-play .m-len{animation-delay:1.6s}.cut-play .m-sl{animation-delay:1.8s}
+.cut-play .odo b{animation:cutOdo .85s cubic-bezier(.25,.7,.2,1) both}
+@keyframes cutOdo{from{transform:translateY(0)}}
+.cut-play .m-sh .odo b{animation-delay:1.55s}.cut-play .m-len .odo b{animation-delay:1.65s}.cut-play .m-sl .odo b{animation-delay:1.85s}
+/* 2.15 s — the running stitch goes round the pattern edge */
+.cut-play .c-st-rev{animation:cutDraw .9s cubic-bezier(.45,0,.55,1) 2.15s both}
+/* 3 s — cut: chalk and tape lift away, the cloth fills the pattern from the shoulders down */
+.cut-play .c-g1,.cut-play .cut-meas{animation:cutOut .45s ease 3s both}
+.cut-play .c-g2{animation:cutOut .5s ease 3.35s both}
+.cut-play .c-st{animation:cutOut .45s ease 3.45s both}
+.cut-play .cut-fill{animation:cutRevA .8s cubic-bezier(.6,0,.25,1) 3s both}
+.cut-play .cut-fill-in{animation:cutRevB .8s cubic-bezier(.6,0,.25,1) 3s both}
+/* 3.55 s — the hanger is drawn in and the thobe settles on it */
+.cut-play .cut-thobe .hanger path{stroke-dasharray:1 1;animation:cutDraw .5s ease-out 3.55s both}
+.cut-play .cut-swing{animation:cutSettle 1.15s cubic-bezier(.3,.6,.35,1) 3.6s both,cutSway 7s ease-in-out 4.75s infinite alternate}
+@keyframes cutSettle{0%{transform:translateY(-2.5%) rotate(0)}28%{transform:translateY(0) rotate(1.8deg)}52%{transform:rotate(-1.1deg)}76%{transform:rotate(.3deg)}100%{transform:rotate(-.5deg)}}
+.cut-play .cut-swing .turn-sheen i{animation-delay:5.3s}
+/* 3.75 s — the swatch book fans open behind it; tape and chips return */
+.cut-play .scene{animation:cutSceneIn 1.3s var(--ease) 3.75s both,sway 14s ease-in-out 5.05s infinite alternate}
+@keyframes cutSceneIn{from{opacity:0;transform:translateY(18px) scale(.86) rotateY(-12deg)}to{opacity:1;transform:rotateY(-8deg)}}
+.cut-play .sw{animation:cutFanIn 1.6s var(--ease) 3.85s both,fanOpen 9s ease-in-out 5.45s infinite alternate}
+@keyframes cutFanIn{from{transform:rotate(0deg) translateZ(calc((6 - var(--i)) * 4px))}to{transform:rotate(calc((var(--i) - 3) * 9deg)) translateZ(calc((6 - var(--i)) * 4px))}}
+.cut-play .tape{animation:cutIn .8s var(--ease) 3.9s both}
+.cut-play .hchip{animation:cutChip .55s var(--spring) both,bob 6.5s ease-in-out infinite}
+@keyframes cutChip{from{opacity:0;scale:.86}}
+.cut-play .hchip-a{animation-delay:4.25s,-1s}.cut-play .hchip-b{animation-delay:4.45s,-3.2s}
+/* 4.3 s — the woven VIP label is stitched on, then the swing tag drops in */
+.cut-play .cut-vip{animation:cutVip .55s cubic-bezier(.34,1.4,.5,1) 4.3s both}
+@keyframes cutVip{from{transform:translateX(-100%)}}
+.cut-play .cut-vip-st{animation:cutSt .3s ease-out 4.72s both}
+@keyframes cutSt{from{transform:scaleY(0)}}
+.cut-play .cut-tagw{animation:cutTagIn .9s cubic-bezier(.3,1.45,.5,1) 4.55s both,cutTagSway 6s ease-in-out 5.45s infinite alternate}
+@keyframes cutTagIn{from{opacity:0;visibility:hidden;transform:rotate(calc(30deg * var(--dir)))}to{opacity:1;visibility:visible;transform:rotate(-1.5deg)}}
+.cut-play .cut-replay{animation:cutIn .5s ease 5.2s both}
+/* the tab is hidden: hold everything */
+.tab-hidden .hero *,.tab-hidden .atelier *{animation-play-state:paused!important}
+
 /* ---------- Sections ---------- */
 .sec{padding-block:var(--s-7)}
 @media (min-width:900px){.sec{padding-block:var(--s-8)}}
@@ -396,7 +555,7 @@ button{background:none;border:0;padding:0;cursor:pointer}
 .seg input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;width:100%;height:100%}
 .seg label:has(input:checked){color:var(--brand-ink)}
 .seg label:has(input:focus-visible){outline:2.5px solid var(--brand);outline-offset:2px}
-.seg-ind{position:absolute;z-index:0;top:4px;bottom:4px;inset-inline-start:4px;width:calc((100% - 8px)/var(--n));border-radius:var(--r-pill);background:var(--brand);box-shadow:var(--shadow-1),inset 0 1px 0 rgba(255,255,255,.2);transform:translateX(calc(var(--idx,0) * -100%));transition:transform .5s var(--spring)}
+.seg-ind{position:absolute;z-index:0;top:4px;bottom:4px;inset-inline-start:4px;width:calc((100% - 8px)/var(--n));border-radius:var(--r-pill);background:var(--brand);box-shadow:var(--shadow-1),inset 0 1px 0 rgba(255,255,255,.2);transform:translateX(calc(var(--idx,0) * 100% * var(--dir)));transition:transform .5s var(--spring)}
 .seg label:active span{display:inline-block;transform:scale(.95)}
 @media (hover:hover){.seg label:not(:has(input:checked)):hover{color:var(--ink)}}
 .colors{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:6px}
@@ -487,8 +646,8 @@ button{background:none;border:0;padding:0;cursor:pointer}
 .wz-prog i{display:block;height:100%;background:linear-gradient(90deg,var(--vip-2),var(--brand));border-radius:3px;transform-origin:right;transform:scaleX(var(--prog,.333));transition:transform .55s var(--spring)}
 .wz-count{font-size:var(--t-xs);color:var(--ink-2);font-weight:600;min-width:5.58em;text-align:end;font-variant-numeric:tabular-nums}
 .wz-steps{display:grid}
-.wz-step{grid-area:1/1;border:0;margin:0;padding:0;min-inline-size:0;opacity:0;visibility:hidden;transform:translateX(-28px);transition:opacity .35s var(--ease),transform .5s var(--ease),visibility 0s linear .5s}
-.wz-step.is-past{transform:translateX(28px)}
+.wz-step{grid-area:1/1;border:0;margin:0;padding:0;min-inline-size:0;opacity:0;visibility:hidden;transform:translateX(calc(28px * var(--dir)));transition:opacity .35s var(--ease),transform .5s var(--ease),visibility 0s linear .5s}
+.wz-step.is-past{transform:translateX(calc(-28px * var(--dir)))}
 .wz-step.is-on{opacity:1;visibility:visible;transform:none;transition-delay:0s}
 .wz-lg{display:flex;align-items:center;gap:10px;font-family:var(--f-head);font-weight:700;font-size:var(--t-lg);margin-bottom:14px;padding:0}
 .wz-n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font:600 var(--t-sm)/1 var(--f-body);background:var(--brand);color:var(--brand-ink)}
@@ -517,7 +676,7 @@ textarea.inp{resize:none;min-height:84px;display:block}
 .sw-track{width:44px;height:26px;border-radius:13px;background:var(--line-2);position:relative;transition:background-color .3s;flex:none}
 .sw-track i{position:absolute;top:3px;inset-inline-start:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .4s var(--spring)}
 .switch input:checked+.sw-track{background:var(--brand)}
-.switch input:checked+.sw-track i{transform:translateX(-18px)}
+.switch input:checked+.sw-track i{transform:translateX(calc(18px * var(--dir)))}
 [data-theme="dark"] .switch input:checked+.sw-track i{background:var(--brand-ink)}
 .switch input:focus-visible+.sw-track{outline:2.5px solid var(--brand);outline-offset:2px}
 /* custom dropdown */
@@ -701,7 +860,7 @@ html.lock,html.lock body{overflow:hidden}
 .js .hdr-in{animation:enterUp .8s var(--ease) both}
 .js .rv{opacity:0;transform:translateY(24px) perspective(900px) rotateX(8deg);transition:opacity .8s var(--ease),transform 1s var(--ease)}
 .js .rv.in{opacity:1;transform:none}
-.js .slide{opacity:0;transform:translateX(30px);transition:opacity .8s var(--ease),transform 1s var(--ease)}
+.js .slide{opacity:0;transform:translateX(calc(-30px * var(--dir)));transition:opacity .8s var(--ease),transform 1s var(--ease)}
 .js .slide.in{opacity:1;transform:none}
 .proof>.rv:nth-child(2),.why-row>.rv:nth-child(2){transition-delay:.12s}
 .why-row>.rv:nth-child(3){transition-delay:.24s}
@@ -721,7 +880,7 @@ html.lock,html.lock body{overflow:hidden}
   }
 }
 @keyframes rvIn{from{opacity:0;transform:translateY(28px) perspective(900px) rotateX(10deg) scale(.985)}to{opacity:1;transform:none}}
-@keyframes slideIn{from{opacity:0;transform:translateX(34px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(calc(-34px * var(--dir)))}to{opacity:1;transform:none}}
 @keyframes settle{from{transform:scale(1.08)}to{transform:none}}
 @keyframes heroOut{to{transform:translateY(10%) scale(.9);opacity:.3}}
 @keyframes titleOut{to{transform:translateY(-14%) scale(.96);opacity:.55}}
@@ -732,6 +891,17 @@ html.lock,html.lock body{overflow:hidden}
   .js .swipe>.rv,.js .swipe>*{animation:none;opacity:1;transition:box-shadow .45s var(--ease),border-color .35s,background-color .35s;will-change:transform}
 }
 
+/* ---------- Language switch + English page ---------- */
+.lang-btn{font:600 13px/1 var(--f-body);letter-spacing:.06em;color:var(--brand)}
+.lang-btn[lang="ar"]{font:700 19px/1 var(--f-head);letter-spacing:0;padding-bottom:4px}
+html[lang="en"] .hero-title{column-gap:.22em}
+html[lang="en"] .ht-kind{order:-1;font-family:var(--f-body);font-weight:500;font-size:var(--t-sm);letter-spacing:.34em;text-transform:uppercase;margin-bottom:.5em}
+html[lang="en"] .ht-mark{font-family:var(--f-head);font-size:clamp(3.3rem,2.4rem + 4.6vw,6rem);line-height:1.08;letter-spacing:-.005em}
+html[lang="en"] .hero-lead{max-width:17em}
+.rec-tr{font-family:var(--f-head);font-weight:700;font-size:var(--t-lg);line-height:1.5;margin-top:6px!important;color:var(--ink-2)}
+.rec-tr small{display:block;font:400 var(--t-xs)/1.5 var(--f-body);color:var(--ink-3);margin-top:2px}
+html[lang="en"] .rec-card blockquote p:first-child{font-size:var(--t-lg)}
+
 /* ---------- Reduced motion: simple fades, everything visible ---------- */
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:1ms!important;animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:1ms!important}
@@ -740,6 +910,8 @@ html.lock,html.lock body{overflow:hidden}
   .hero-stage,.hero-title,.atelier,.swipe,.swipe>*{animation:none!important;transform:none!important;opacity:1!important;filter:none!important}
   .js .g-item img{animation:none!important}
   .p-trace{display:none}
+  .cut-cloth,.cut-draft,.cut-meas{display:none!important}
+  .cut-fill,.cut-fill-in,.cut-vip,.cut-vip-st{transform:none!important}
 }
 
 /* ---------- theme switch: circular reveal from the moon button ---------- */

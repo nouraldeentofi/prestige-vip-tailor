@@ -12,11 +12,36 @@
   if (!SDA) root.classList.add('no-sda');
   const raf = (fn) => { let t = 0; return () => { if (!t) t = requestAnimationFrame(() => { t = 0; fn(); }); }; };
 
+  /* ---------- language: the page is either Arabic (rtl) or English (ltr) ---------- */
+  const EN = (C.lang || root.lang) === 'en';
+  const RTL = !EN;
+  const L = EN ? {
+    days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+    wd: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+    months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+    sep: ', ', tomorrow: 'tomorrow ', openUntil: 'Open now · closes ', closedAt: 'Closed now · opens ', closed: 'Closed now',
+    dark: 'Dark mode', light: 'Light mode', step: (n) => `Step <span dir="ltr">${n}</span> of <span dir="ltr">3</span>`,
+    errDate: 'Choose a day that suits you', errTime: 'Choose a time', errName: 'Write your name so we know who you are',
+    prevMonth: 'Previous month', nextMonth: 'Next month', closedDay: ', closed',
+    sum: { count: 'Thobes', occ: 'Occasion', when: 'Appointment', model: 'Model', none: 'None', edit: 'Edit' },
+    msg: { hi: (n) => `Hello, I'd like to book a measuring appointment at ${n}.`, name: 'Name', count: 'Thobes', occ: 'Occasion', when: 'Appointment', model: 'Model', notes: 'Notes', from: '(from the website)' },
+  } : {
+    days: ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'],
+    wd: ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'],
+    months: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'],
+    sep: '، ', tomorrow: 'بكرة ', openUntil: 'مفتوح الحين · يقفل ', closedAt: 'مسكّر الحين · يفتح ', closed: 'مسكّر الحين',
+    dark: 'الوضع الليلي', light: 'الوضع النهاري', step: (n) => `الخطوة <span dir="ltr">${n}</span> من <span dir="ltr">3</span>`,
+    errDate: 'اختر اليوم اللي يناسبك', errTime: 'اختر الوقت', errName: 'اكتب اسمك عشان نعرفك',
+    prevMonth: 'الشهر اللي قبل', nextMonth: 'الشهر اللي بعد', closedDay: '، مسكّر',
+    sum: { count: 'عدد الثياب', occ: 'المناسبة', when: 'الموعد', model: 'الموديل', none: 'بدون', edit: 'تعديل' },
+    msg: { hi: (n) => `السلام عليكم، أبي أحجز موعد قياس عند ${n}.`, name: 'الاسم', count: 'عدد الثياب', occ: 'المناسبة', when: 'الموعد', model: 'الموديل', notes: 'ملاحظات', from: '(من الموقع)' },
+  };
+
   /* ---------- dialect time + Riyadh clock ---------- */
   const DAYS = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
-  const DAY_AR = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-  const MON_AR = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
-  const part = (h) => (h < 4 ? 'بالليل' : h < 5 ? 'الفجر' : h < 12 ? 'الصبح' : h < 15 ? 'الظهر' : h < 18 ? 'العصر' : h < 19 ? 'المغرب' : 'بالليل');
+  const DAY_AR = L.days;
+  const MON_AR = L.months;
+  const part = (h) => (EN ? (h < 12 ? 'am' : 'pm') : h < 4 ? 'بالليل' : h < 5 ? 'الفجر' : h < 12 ? 'الصبح' : h < 15 ? 'الظهر' : h < 18 ? 'العصر' : h < 19 ? 'المغرب' : 'بالليل');
   const fmtTime = (min) => { const h = Math.floor(min / 60) % 24, m = min % 60; return `${h % 12 === 0 ? 12 : h % 12}:${String(m).padStart(2, '0')} ${part(h)}`; };
   const toMin = (s) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
   function riyadhNow() {
@@ -43,8 +68,8 @@
     const st = openStatus();
     $$('#openBadge,[data-open-badge]').forEach((b) => {
       if (!st) { b.hidden = true; return; }
-      const when = st.k === 0 ? '' : st.k === 1 ? 'بكرة ' : `${DAY_AR[st.wd]} `;
-      $('span', b).textContent = st.open ? `مفتوح الحين · يقفل ${fmtTime(st.until)}` : st.at != null ? `مسكّر الحين · يفتح ${when}${fmtTime(st.at)}` : 'مسكّر الحين';
+      const when = st.k === 0 ? '' : st.k === 1 ? L.tomorrow : `${DAY_AR[st.wd]} `;
+      $('span', b).textContent = st.open ? `${L.openUntil}${fmtTime(st.until)}` : st.at != null ? `${L.closedAt}${when}${fmtTime(st.at)}` : L.closed;
       b.classList.toggle('is-closed', !st.open);
       b.hidden = false; b.removeAttribute('data-pending');
     });
@@ -60,7 +85,7 @@
   function applyTheme(t) {
     root.dataset.theme = t;
     themeBtn.setAttribute('aria-pressed', String(t === 'dark'));
-    themeBtn.setAttribute('aria-label', t === 'dark' ? 'الوضع النهاري' : 'الوضع الليلي');
+    themeBtn.setAttribute('aria-label', t === 'dark' ? L.light : L.dark);
     if (metaTheme) metaTheme.content = t === 'dark' ? '#0B1322' : '#EEF2F6';
   }
   applyTheme(root.dataset.theme === 'dark' ? 'dark' : 'light');
@@ -131,8 +156,22 @@
 
   /* ---------- pause animated areas that are off screen ---------- */
   const pio = new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('is-paused', !e.isIntersecting)), { rootMargin: '80px' });
-  $$('.hero-stage,.bld-stage,.why-row,.ftr,.visit-map,.proof').forEach((el) => pio.observe(el));
-  document.addEventListener('visibilitychange', () => atelier.classList.toggle('is-paused', document.hidden));
+  $$('.hero,.hero-stage,.bld-stage,.why-row,.ftr,.visit-map,.proof').forEach((el) => pio.observe(el));
+  document.addEventListener('visibilitychange', () => { atelier.classList.toggle('is-paused', document.hidden); root.classList.toggle('tab-hidden', document.hidden); });
+
+  /* ---------- opening «على المقاس»: plays once per session (class set in <head>); replay on demand ---------- */
+  const heroSec = $('#home');
+  // landed somewhere else on the page (deep link / restored scroll): don't hold back a sequence nobody sees
+  if (root.classList.contains('cut-play') && ((location.hash && location.hash !== '#home') || scrollY > innerHeight * 0.6)) root.classList.remove('cut-play');
+  const replayBtn = $('.cut-replay');
+  if (replayBtn) replayBtn.addEventListener('click', () => {
+    if (mqReduce.matches) return;
+    root.classList.remove('cut-play');
+    void heroSec.offsetWidth; // restart every keyframe from 0
+    heroSec.classList.remove('is-paused'); $('.hero-stage').classList.remove('is-paused');
+    root.classList.add('cut-play');
+    if (heroSec.getBoundingClientRect().top < -40) heroSec.scrollIntoView({ behavior: 'smooth' });
+  });
 
   /* ---------- scroll lock (scrollbar-gutter keeps layout still) ---------- */
   let locks = 0;
@@ -253,7 +292,7 @@
   const bldCap = $('#bldCap');
   const designTxt = $('#fDesignTxt');
   const incDesign = $('#fIncDesign');
-  const designText = () => $$('input:checked', bld).map((i) => i.dataset.t).join('، ');
+  const designText = () => $$('input:checked', bld).map((i) => i.dataset.t).join(L.sep);
   const syncSeg = (seg) => seg.style.setProperty('--idx', String($$('input', seg).findIndex((i) => i.checked)));
   $$('.seg', bld).forEach(syncSeg);
   bld.addEventListener('change', (e) => {
@@ -291,7 +330,7 @@
       if (phone && k !== step) s.setAttribute('inert', ''); else s.removeAttribute('inert');
     });
     bar.style.setProperty('--prog', String(step / 3));
-    wzCount.innerHTML = `الخطوة <span dir="ltr">${step}</span> من <span dir="ltr">3</span>`;
+    wzCount.innerHTML = L.step(step);
     back.setAttribute('aria-disabled', String(step === 1));
     back.tabIndex = step === 1 ? -1 : 0;
     nextBtn.classList.toggle('is-off', step === 3);
@@ -308,13 +347,13 @@
   function validate(which) {
     let first = 0;
     if (which === 2 || which === 'all') {
-      setErr('date', data.date ? '' : 'اختر اليوم اللي يناسبك');
-      setErr('time', data.time ? '' : 'اختر الوقت');
+      setErr('date', data.date ? '' : L.errDate);
+      setErr('time', data.time ? '' : L.errTime);
       if (!data.date || !data.time) first = first || 2;
     }
     if (which === 3 || which === 'all') {
       const ok = fName.value.trim().length > 0;
-      setErr('name', ok ? '' : 'اكتب اسمك عشان نعرفك');
+      setErr('name', ok ? '' : L.errName);
       if (!ok) first = first || 3;
     }
     return first;
@@ -366,14 +405,15 @@
     const dim = new Date(Date.UTC(view.y, view.m + 1, 0, 12)).getUTCDate();
     const atStart = view.y === t.y && view.m === t.m;
     const tk = keyOf(t), sel = data.date ? keyOf(data.date) : '';
-    let h = `<div class="cal-head"><button type="button" class="icon-btn" data-cal="-1" aria-label="الشهر اللي قبل" ${atStart ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></button><span class="cal-title" aria-live="polite">${MON_AR[view.m]} <span dir="ltr">${view.y}</span></span><button type="button" class="icon-btn" data-cal="1" aria-label="الشهر اللي بعد"><svg class="ic" aria-hidden="true"><use href="#i-chevron-left"></use></svg></button></div><div class="cal-grid" role="grid">`;
-    ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت'].forEach((w) => { h += `<span class="cal-wd" aria-hidden="true">${w}</span>`; });
+    const [chPrev, chNext] = RTL ? ['chevron-right', 'chevron-left'] : ['chevron-left', 'chevron-right'];
+    let h = `<div class="cal-head"><button type="button" class="icon-btn" data-cal="-1" aria-label="${L.prevMonth}" ${atStart ? 'disabled' : ''}><svg class="ic" aria-hidden="true"><use href="#i-${chPrev}"></use></svg></button><span class="cal-title" aria-live="polite">${MON_AR[view.m]} <span dir="ltr">${view.y}</span></span><button type="button" class="icon-btn" data-cal="1" aria-label="${L.nextMonth}"><svg class="ic" aria-hidden="true"><use href="#i-${chNext}"></use></svg></button></div><div class="cal-grid" role="grid">`;
+    L.wd.forEach((w) => { h += `<span class="cal-wd" aria-hidden="true">${w}</span>`; });
     for (let i = 0; i < 42; i++) {
       const d = i - first + 1;
       if (d < 1 || d > dim) { h += '<button type="button" class="cal-d is-out" tabindex="-1" disabled aria-hidden="true"></button>'; continue; }
       const o = { y: view.y, m: view.m, d }, k = keyOf(o);
       const past = k < tk, closed = closedDay(o);
-      h += `<button type="button" class="cal-d${k === tk ? ' is-today' : ''}" data-key="${k}" aria-pressed="${k === sel}" aria-label="${dateLabel(o)}${closed ? '، مسكّر' : ''}" ${past || closed ? 'disabled' : ''} tabindex="${k === (sel || tk) ? 0 : -1}"><span dir="ltr">${d}</span></button>`;
+      h += `<button type="button" class="cal-d${k === tk ? ' is-today' : ''}" data-key="${k}" aria-pressed="${k === sel}" aria-label="${dateLabel(o)}${closed ? L.closedDay : ''}" ${past || closed ? 'disabled' : ''} tabindex="${k === (sel || tk) ? 0 : -1}"><span dir="ltr">${d}</span></button>`;
     }
     calEl.innerHTML = h + '</div>';
   }
@@ -388,7 +428,7 @@
   });
   calEl.addEventListener('keydown', (e) => {
     const b = e.target.closest('.cal-d[data-key]'); if (!b) return;
-    const delta = { ArrowLeft: 1, ArrowRight: -1, ArrowDown: 7, ArrowUp: -7 }[e.key];
+    const delta = { ArrowLeft: RTL ? 1 : -1, ArrowRight: RTL ? -1 : 1, ArrowDown: 7, ArrowUp: -7 }[e.key];
     if (!delta) return;
     e.preventDefault();
     const [y, m, d] = b.dataset.key.split('-').map(Number);
@@ -407,8 +447,8 @@
   $$('[data-quick]', wz).forEach((c) => {
     const q = quickDate(c.dataset.quick);
     c.setAttribute('aria-pressed', 'false');
-    c.setAttribute('aria-label', `${c.textContent.trim()}، ${dateLabel(q)}`);
-    if (closedDay(q)) { c.disabled = true; c.setAttribute('aria-label', `${c.textContent.trim()}، مسكّر`); }
+    c.setAttribute('aria-label', `${c.textContent.trim()}${L.sep}${dateLabel(q)}`);
+    if (closedDay(q)) { c.disabled = true; c.setAttribute('aria-label', `${c.textContent.trim()}${L.closedDay}`); }
     c.addEventListener('click', () => pickDate(quickDate(c.dataset.quick)));
   });
 
@@ -438,27 +478,29 @@
   // summary (phones, step 3)
   const wzSum = $('#wzSum');
   function renderSummary() {
+    const esc = (t) => String(t).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
     const rows = [
-      ['عدد الثياب', String(data.count), 1],
-      ['المناسبة', data.occasion || '—', 1],
-      ['الموعد', data.date ? `${dateLabel(data.date)}، ${data.time ? fmtTime(toMin(data.time)) : ''}` : '—', 2],
+      [L.sum.count, String(data.count), 1],
+      [L.sum.occ, data.occasion || '—', 1],
+      [L.sum.when, data.date ? `${dateLabel(data.date)}${L.sep}${data.time ? fmtTime(toMin(data.time)) : ''}` : '—', 2],
     ];
-    if (incDesign.checked) rows.push(['الموديل', designText(), 1]);
-    else rows.push(['الموديل', 'بدون', 1]);
-    wzSum.innerHTML = rows.map(([k, v, s]) => `<div><dt>${k}</dt><dd>${v}</dd><button type="button" data-goto="${s}" aria-label="تعديل ${k}">تعديل</button></div>`).join('');
+    if (incDesign.checked) rows.push([L.sum.model, designText(), 1]);
+    else rows.push([L.sum.model, L.sum.none, 1]);
+    wzSum.innerHTML = rows.map(([k, v, s]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd><button type="button" data-goto="${s}" aria-label="${L.sum.edit} ${k}">${L.sum.edit}</button></div>`).join('');
   }
   wzSum.addEventListener('click', (e) => { const b = e.target.closest('[data-goto]'); if (b) goStep(+b.dataset.goto); });
 
   // compose WhatsApp
   function message() {
-    const lines = [`السلام عليكم، أبي أحجز موعد قياس عند ${C.name || 'خياط برستيج VIP'}.`, ''];
-    lines.push(`الاسم: ${fName.value.trim()}`);
-    lines.push(`عدد الثياب: ${data.count}`);
-    if (data.occasion) lines.push(`المناسبة: ${data.occasion}`);
-    lines.push(`الموعد: ${dateLabel(data.date)}، ${fmtTime(toMin(data.time))}`);
-    if (incDesign.checked) lines.push(`الموديل: ${designText()}`);
-    const n = fNotes.value.trim(); if (n) lines.push(`ملاحظات: ${n}`);
-    lines.push('', '(من الموقع)');
+    const M = L.msg;
+    const lines = [M.hi(C.name || 'خياط برستيج VIP'), ''];
+    lines.push(`${M.name}: ${fName.value.trim()}`);
+    lines.push(`${M.count}: ${data.count}`);
+    if (data.occasion) lines.push(`${M.occ}: ${data.occasion}`);
+    lines.push(`${M.when}: ${dateLabel(data.date)}${L.sep}${fmtTime(toMin(data.time))}`);
+    if (incDesign.checked) lines.push(`${M.model}: ${designText()}`);
+    const n = fNotes.value.trim(); if (n) lines.push(`${M.notes}: ${n}`);
+    lines.push('', M.from);
     return lines.join('\n');
   }
   wz.addEventListener('submit', (e) => {
@@ -576,8 +618,8 @@
     }), { passive: true });
     lb.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') close();
-      if (e.key === 'ArrowLeft') go(idx + 1);
-      if (e.key === 'ArrowRight') go(idx - 1);
+      if (e.key === 'ArrowLeft') go(RTL ? idx + 1 : idx - 1);
+      if (e.key === 'ArrowRight') go(RTL ? idx - 1 : idx + 1);
       if (e.key === 'Tab') { const f = $$('button', lb); const i = f.indexOf(document.activeElement); if (e.shiftKey && i <= 0) { e.preventDefault(); f[f.length - 1].focus(); } else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); } }
     });
   }
